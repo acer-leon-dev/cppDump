@@ -1,10 +1,10 @@
 -- premake5.lua
-workspace "LoginInterface"
+workspace "Login-Interface"
     configurations { "Debug", "Release" }
 
 outputdir = "%{cfg.system}-%{cfg.architecture}-%{cfg.buildcfg}"
 
-project "LoginInterface"
+project "Login-Interface"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"

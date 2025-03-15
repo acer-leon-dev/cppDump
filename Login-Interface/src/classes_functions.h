@@ -8,7 +8,9 @@ std::string current_account;
 // For creating accounts
 class User {
 public:
-    std::string username, password, email;
+    std::string username;
+    std::string password;
+    std::string email;
     bool admin = false;
 };
 
