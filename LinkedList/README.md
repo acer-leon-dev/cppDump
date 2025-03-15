@@ -1,0 +1,1 @@
+An implementstion of the circuarly singly linked list data structure according to the instructions outlined in the "Programming Exercises" section on [thenumb.at](https://thenumb.at/cpp-course/cpp/16/16.html).
