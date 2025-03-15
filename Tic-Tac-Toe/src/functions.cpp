@@ -1,22 +1,21 @@
-#pragma once
+#include "functions.h"
+
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
-#include "config.h"
 
-void mode() {
+
+mode prompt_mode() {
     while (true) {
         std::string mode;
         std::cout << "Bot mode or PvP? (bot/pvp) > "; std::cin >> mode;
         if (mode == "bot") {
-            bot = true;
             std::cout << "Player vs. Bot\n" << std::endl;
-            break;
+            return PLAYERVBOT;
         }
         else if (mode == "pvp") {
-            bot = false;
             std::cout << "PvP\n" << std::endl;
-            break;
+            return PLAYERVPLAYER;
         }
         else {
             std::cout << "Invalid choice!" << std::endl;
@@ -25,37 +24,37 @@ void mode() {
     }
 }
 
-void number_input(char player, char opponent) {
+void number_input(char *board, int player_pos, char player, char opponent) {
     while (true) {
         std::cout << player << "'s turn >> ";
-        std::cin >> spot;
-        if (board[spot - 1] == player || board[spot - 1] == opponent || spot < 1 || spot > 9) {
+        std::cin >> player_pos;
+        if (board[player_pos - 1] == player || board[player_pos - 1] == opponent || player_pos < 1 || player_pos > 9) {
             std::cout << "Invalid spot!" << std::endl;
             continue;
         }
         else {
-            board[spot - 1] = player;
+            board[player_pos - 1] = player;
             break;
         }
     }
 }
 
-void bot_input(char bot, char opponent) {
+void bot_input(char *board, char bot, char player) {
     while (true) {
         srand((int)time(NULL));
-        spot = 1 + rand() % 9;
-        if (board[spot - 1] == opponent || board[spot - 1] == bot) {
+        int bot_pos = 1 + rand() % 9;
+        if (board[bot_pos - 1] == player || board[bot_pos - 1] == bot) {
             continue;
         }
         else {
-            std::cout << bot << "'s turn > " << spot << std::endl;
-            board[spot - 1] = bot;
+            std::cout << bot << "'s turn > " << bot_pos << std::endl;
+            board[bot_pos - 1] = bot;
             break;
         }
     }
 }
 
-void print_board() {
+void print_board(char* board) {
     // std::cout << "   *   *   " << std::endl;
     std::cout << " " << board[0] << " * " << board[1] << " * " << board[2] << " " << std::endl;
     std::cout << "***********" << std::endl;
@@ -65,7 +64,7 @@ void print_board() {
     // std::cout << "   *   *   " << std::endl;
 }
 
-bool check_win(char player) {
+bool check_win(char *board, int turn, char player) {
     turn++;
     bool win_combos[8] = {};
     // Define the row combos
@@ -101,14 +100,13 @@ bool check_win(char player) {
     return false;
 }
 
-bool check_replay() {
+bool check_replay(char *board) {
     std::string replay;
     while (true) {
         std::cout << "Play again? (yes/no) > "; std::cin >> replay;
         if (replay == "yes") {
             for (int i = 0; i < 9; i++)
                 board[i] = '0' + i + 1;
-            turn = 0;
             return true;
         }
         else if (replay == "no")
