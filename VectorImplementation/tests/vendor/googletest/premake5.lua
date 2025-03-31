@@ -2,7 +2,7 @@ project "googletest"
 	kind "StaticLib"
 	language "C++"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{cfg.shortname}/")
-	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}_%{cfg.shortname}/")
+	objdir ("%{wks.location}/bin/int/" .. outputdir .. "/%{prj.name}_%{cfg.shortname}/")
         
         -- This premake file is relative to googletest/ directory
 	files {
