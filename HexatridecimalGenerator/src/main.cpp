@@ -2,81 +2,57 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <cctype>
 
-namespace
-{
+namespace {
 
-char random_hexatridecimal_char(bool upper = false)
-{
+enum class Casing {
+    LOWER,
+    UPPER,
+    MIXED
+};
+
+char random_number_char(int base, Casing casing) {
     std::random_device rd;
     std::mt19937 gen{rd()};
-    std::uniform_int_distribution<char> uniform_dist{'0', 'z' + 1};
+    std::uniform_int_distribution<int> dist{0, base};
 
-    int alpha_diff = (upper) ? 35 : 0; 
-    int ch;
-    do {
-        ch = uniform_dist(gen);
-    } while (!('a' - alpha_diff <= ch && ch <= 'z' - alpha_diff) && !('0' <= ch && ch <= '9'));
-
-    return ch;
-}
-
-std::string random_hexatridecimal_string(unsigned int digits, bool upper = false)
-{
-    std::string output;
-    output.reserve(digits);
-    
-    for (int i = 0; i < digits; i++) {
-        output.push_back(random_hexatridecimal_char(upper));
+    char character;
+    int ch_index = dist(gen);
+    if (0 <= ch_index && ch_index <= 9) {
+        character = '0' + ch_index;
+    } else if (10 <= ch_index && ch_index <= 35){
+        character = 'a' + ch_index - 10;
+        if (casing == Casing::UPPER) {
+            character = std::toupper(character);
+        } else if (casing == Casing::MIXED) {
+            static std::uniform_int_distribution<int> binary_dist{0, 1};
+            if (binary_dist(gen)) {
+                character = std::toupper(character);
+            }
+        }
+    } else {
+        throw std::invalid_argument("Error: Base (= " + std::to_string(base) + ") can't be greater than 36");
     }
     
+    return character;
+}
+
+std::string random_hexatridecimal_string(size_t base, size_t length, Casing casing) {
+    std::string output;
+    output.reserve(length);
+    for (int i = 0; i < length; i++) {
+        output.push_back(random_number_char(base, casing));
+    }
     return output;
 }
 
-bool has_option(const std::vector<std::string>& args, const std::string&str)
-{
-    return *std::find(args.begin(), args.end(), str) == str;
+void print_usage(const std::string& program_path) {
+    std::cerr << "Usage: " << std::filesystem::path(program_path).stem().string() << " [-u | --upper] <n>\n";
 }
 
-std::string find_argument(const std::vector<std::string>& args, unsigned int n)
-{
-    unsigned int count = 0;
-    for (int i = 0; i < args.size(); i++)
-    {   
-        std::string str = args[i];
-        if (str[0] != '-') {
-            if (count == n) {
-                return str;
-            }
-            else
-            {
-                count++;
-            }
-        }
-    }
-
-    return "";
-}
-
-std::vector<std::string> get_args(int argc, char ** argv)
-{
-    std::vector<std::string> args;
-    args.reserve(argc); 
-    for (int i = 0; i < argc; i++) {
-        args.emplace_back(argv[i]);
-    }
-
-    return args;
-}
-
-void print_usage(const std::vector<std::string>& args)
-{
-    std::cerr << "Usage: " << std::filesystem::path(args[0]).stem().string() << " [-u | --upper] <n>\n";
-}
-
-bool string_is_integer(std::string str) {
-    for (char c : str)
-    {
+bool is_int(const std::string& str) {
+    for (char c : str) {
         if (!std::isdigit(c)) {
             return false;
         }
@@ -85,26 +61,68 @@ bool string_is_integer(std::string str) {
     return true;
 }
 
-void assert(const std::vector<std::string>& args, bool b) {
-    if (b) {
-        print_usage(args);
-        std::exit(EXIT_FAILURE);
-    }
-}
-
 };
 
-int main(int argc, char ** argv)
-{
-    std::vector<std::string> args = get_args(argc, argv);
-
-    assert(args, argc < 2 || has_option(args, "-h") || has_option(args, "--help"));
-
-    std::string str_n = find_argument(args, 1);
-    assert(args, str_n.empty() || !string_is_integer(str_n));
+int main(int argc, char ** argv) {
+    std::vector<std::string> args = std::vector<std::string>(argv, argv + argc);
     
-    bool upper = has_option(args, "-u") || has_option(args, "--upper");
-    std::cout << random_hexatridecimal_string(std::stoi(str_n), upper) << '\n';
+    size_t base = 0;
+    size_t length = 0;
+    Casing casing;
+
+    for (int i = 1; i < argc; i++) {
+        std::string this_arg = args[i];
+
+        if (this_arg == "-h" || this_arg == "--help") {
+            print_usage(args[0]);
+        }
+
+        else if (this_arg == "-l" || this_arg == "--lower") {
+            casing = Casing::LOWER;
+        }
+
+        else if (this_arg == "-u" || this_arg == "--upper") {
+            casing = Casing::UPPER;
+        }
+
+        else if (this_arg == "-m" || this_arg == "--mixed") {
+            casing = Casing::MIXED;
+        }
+
+        else if (this_arg == "-b" || this_arg == "--base") {
+            const std::string& s_base  = args[i + 1];
+
+            if (!is_int(s_base)) {
+                std::cerr << "Fatal Error: base must be an int.\n";
+                std::exit(1);
+            }
+            
+            size_t i_base = std::stoi(s_base);
+
+            if (i_base < 1 || i_base > 36) {
+                std::cerr << "Fatal Error: base must be in range [1, 36].\n";
+                std::exit(1);
+            }
+        }
+
+        else if (this_arg == "-n" || this_arg == "--numbers") {
+            const std::string& s_length = args[i + 1];
+            
+            if (!is_int(s_length)) {
+                std::cerr << "Fatal Error: length must be an int.\n";
+                std::exit(1);
+            }
+
+            size_t i_length = std::stoi(s_length);
+            
+            if (i_length < 0) {
+                std::cerr << "Fatal Error: length must be positive.\n";
+                std::exit(1);
+            }
+        }
+    }
+    
+    std::cout << random_hexatridecimal_string(base, length, casing) << '\n';
     
     return EXIT_SUCCESS;
 }
