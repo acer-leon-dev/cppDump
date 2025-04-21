@@ -1,4 +1,6 @@
-### Generic Build Instructions
+### IGNORE EVERYTHING BELOW THIS TEXT. USE PREMAKE FROM THE PROJECT'S ROOT DIRECTORY TO BUILD GTEST.
+
+<!-- ### Generic Build Instructions
 
 #### Setup
 
@@ -228,4 +230,4 @@ instead of
 TEST(SomeTest, DoesThis) { ... }
 ```
 
-in order to define a test.
+in order to define a test. -->
